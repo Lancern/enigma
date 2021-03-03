@@ -35,7 +35,7 @@ use std::error::Error;
 use std::fmt::{Display, Formatter};
 
 /// Error that indicates a permutation is invalid.
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct InvalidPermutationError;
 
 impl Display for InvalidPermutationError {

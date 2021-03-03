@@ -72,7 +72,7 @@ use std::error::Error;
 use std::fmt::{Display, Formatter, Write};
 
 /// Error indicating that the value of a rune is out of range.
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct RuneOutOfRangeError;
 
 impl Display for RuneOutOfRangeError {
