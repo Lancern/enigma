@@ -129,6 +129,19 @@ impl Permutation {
 
         max_len
     }
+
+    /// Calculate the inverse permutation of this permutation.
+    pub fn inverse(&self) -> Self {
+        let mut inv: Vec<u8> = vec![0u8; self.perm.len()];
+
+        for i in 0..self.perm.len() {
+            inv[self.perm[i] as usize] = i as u8;
+        }
+
+        Self {
+            perm: inv,
+        }
+    }
 }
 
 impl TryFrom<Vec<u8>> for Permutation {
@@ -146,7 +159,7 @@ pub struct PermutationBuilder {
 }
 
 impl PermutationBuilder {
-    /// Create a new permutation builder that buildes a permutation of the specified size.
+    /// Create a new permutation builder that builds a permutation of the specified size.
     pub fn new(n: u8) -> Self {
         Self {
             perm: identity_perm(n),

@@ -1,10 +1,14 @@
+//! This module implements the core components within an Enigma machine, include plug boards,
+//! rotators and reflectors.
+//!
+
 pub mod plug_board;
 pub mod reflector;
 pub mod rotator;
 
 pub use plug_board::{InvalidPlugBoardPermutationError, PlugBoard};
 pub use reflector::{InvalidReflectorPermutationError, Reflector};
-pub use rotator::{InvalidRotatorConfigError, Rotator};
+pub use rotator::{InvalidRotatorPermutationError, Rotator};
 
 #[cfg(test)]
 mod tests {
