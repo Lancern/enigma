@@ -248,6 +248,13 @@ mod tests {
             let perm = Permutation::from_perm(vec![1u8, 2u8, 3u8, 0u8]).unwrap();
             assert_eq!(perm.max_cycle_len(), 4);
         }
+
+        #[test]
+        fn test_inverse() {
+            let perm = Permutation::from_perm(vec![2u8, 1u8, 3u8, 0u8]).unwrap();
+            let inv_perm = perm.inverse();
+            assert_eq!(inv_perm, Permutation::from_perm(vec![3u8, 1u8, 0u8, 2u8]).unwrap());
+        }
     }
 
     mod permutation_builder_tests {
