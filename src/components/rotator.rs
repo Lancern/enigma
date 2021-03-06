@@ -58,13 +58,12 @@ pub struct Rotator {
 }
 
 impl Rotator {
-    /// Create a new rotator from the specified permutation as its forward permutation.
+    /// Create a new rotator from the specified permutation as its forward permutation and the
+    /// specified offset.
     ///
     /// The specified permutation should meet the following requirements:
     /// - Its size should be `RUNE_SET_SIZE`.
-    ///
-    /// The offset of the new rotator is initialized to 0.
-    pub fn from_perm(perm: Permutation) -> Result<Self, InvalidRotatorPermutationError> {
+    pub fn new(perm: Permutation, offset: u8) -> Result<Self, InvalidRotatorPermutationError> {
         if perm.n() != RUNE_SET_SIZE {
             return Err(InvalidRotatorPermutationError);
         }
@@ -74,19 +73,19 @@ impl Rotator {
         Ok(Self {
             perm_forward: perm,
             perm_backward,
-            offset: 0,
+            offset: offset % RUNE_SET_SIZE,
         })
     }
 
-    /// Create a new rotator from the specified permutation, without sanity checks.
+    /// Create a new rotator from the specified permutation and offset value, without sanity checks.
     ///
     /// Users should avoid using this function. Instead, call the `from_perm` function.
-    pub unsafe fn from_perm_unchecked(perm: Permutation) -> Self {
+    pub unsafe fn new_unchecked(perm: Permutation, offset: u8) -> Self {
         let perm_backward = perm.inverse();
         Self {
             perm_forward: perm,
             perm_backward,
-            offset: 0,
+            offset: offset % RUNE_SET_SIZE,
         }
     }
 
@@ -190,19 +189,19 @@ mod tests {
         #[test]
         fn test_from_perm_valid() {
             let perm = create_test_perm_builder_shift().build();
-            assert!(Rotator::from_perm(perm).is_ok());
+            assert!(Rotator::new(perm, 0).is_ok());
         }
 
         #[test]
         fn test_from_perm_invalid_size() {
             let perm = Permutation::from_perm(vec![0u8, 1u8, 2u8, 3u8]).unwrap();
-            assert!(Rotator::from_perm(perm).is_err());
+            assert!(Rotator::new(perm, 0).is_err());
         }
 
         #[test]
         fn test_map_forward() {
             let perm = create_test_perm_builder_shift().build();
-            let rotator = Rotator::from_perm(perm).unwrap();
+            let rotator = Rotator::new(perm, 0).unwrap();
             assert_eq!(rotator.map_forward(Rune::from_char('a').unwrap()), 'b');
             assert_eq!(rotator.map_forward(Rune::from_char('b').unwrap()), 'c');
             assert_eq!(rotator.map_forward(Rune::from_char('c').unwrap()), 'd');
@@ -211,7 +210,7 @@ mod tests {
         #[test]
         fn test_map_backward() {
             let perm = create_test_perm_builder_shift().build();
-            let rotator = Rotator::from_perm(perm).unwrap();
+            let rotator = Rotator::new(perm, 0).unwrap();
             assert_eq!(rotator.map_backward(Rune::from_char('a').unwrap()), 'z');
             assert_eq!(rotator.map_backward(Rune::from_char('b').unwrap()), 'a');
             assert_eq!(rotator.map_backward(Rune::from_char('c').unwrap()), 'b');
@@ -220,7 +219,7 @@ mod tests {
         #[test]
         fn test_advance_once() {
             let perm = create_test_perm_builder().build();
-            let mut rotator = Rotator::from_perm(perm).unwrap();
+            let mut rotator = Rotator::new(perm, 0).unwrap();
 
             rotator.advance();
             assert_eq!(rotator.offset, 1);
@@ -237,7 +236,7 @@ mod tests {
             use crate::utils::RUNE_VALUE_MAX;
 
             let perm = create_test_perm_builder_shift().build();
-            let mut rotator = Rotator::from_perm(perm).unwrap();
+            let mut rotator = Rotator::new(perm, 0).unwrap();
 
             for _ in 0..RUNE_VALUE_MAX {
                 assert!(rotator.advance());
@@ -255,9 +254,9 @@ mod tests {
         fn create_test_group() -> RotatorGroup {
             let perm = create_test_perm_builder_shift().build();
             RotatorGroup::new([
-                Rotator::from_perm(perm.clone()).unwrap(),
-                Rotator::from_perm(perm.clone()).unwrap(),
-                Rotator::from_perm(perm.clone()).unwrap(),
+                Rotator::new(perm.clone(), 0).unwrap(),
+                Rotator::new(perm.clone(), 0).unwrap(),
+                Rotator::new(perm.clone(), 0).unwrap(),
             ])
         }
 
