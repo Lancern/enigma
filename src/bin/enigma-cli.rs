@@ -36,7 +36,7 @@ impl Error for InvalidConfigError { }
 #[derive(Clone, Debug, Deserialize)]
 struct Config {
     plug_board: Vec<[char; 2]>,
-    rotators: [(Vec<char>, u8); 3],
+    rotators: [(String, u8); 3],
     reflector: Vec<[char; 2]>,
 }
 
@@ -60,7 +60,7 @@ impl Config {
     }
 
     fn create_rotator(&self, index: usize) -> Rotator {
-        let perm = match create_permutation_from(&self.rotators[index].0) {
+        let perm = match create_permutation_from_string(&self.rotators[index].0) {
             Ok(perm) => perm,
             Err(e) => {
                 eprintln!("Invalid rotator setting: {}", e);
@@ -135,10 +135,10 @@ fn create_permutation_from_swaps(swaps: &Vec<[char; 2]>)
     Ok(builder.build())
 }
 
-fn create_permutation_from(char_perm: &Vec<char>) -> Result<Permutation, InvalidConfigError> {
-    let mut perm: Vec<u8> = Vec::with_capacity(char_perm.len());
+fn create_permutation_from_string(s: &str) -> Result<Permutation, InvalidConfigError> {
+    let mut perm: Vec<u8> = Vec::with_capacity(s.len());
 
-    for ch in char_perm {
+    for ch in s.chars() {
         if !ch.is_ascii_alphabetic() {
             return Err(InvalidConfigError::new(
                 format!("{} is not an ASCII alphabetic character", ch)));
