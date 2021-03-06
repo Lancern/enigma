@@ -7,16 +7,21 @@
 //! viewed as a Rune permutation that does not have any fixed points. This property ensures that
 //! Enigma machine cannot map input runes to the same output runes, which is one of Enigma machine's
 //! vulnerabilities. Also, the length of the longest cycle within the permutation should be 2.
+//! Finally, the size of the permutation should be equal to `RUNE_SET_SIZE`.
 //!
 //! Reflectors can be created using the `from_perm` associate function:
 //!
 //! ```
 //! # use enigma::components::reflector::Reflector;
-//! # use enigma::math::Permutation;
+//! # use enigma::math::{Permutation, PermutationBuilder};
+//! # use enigma::utils::RUNE_SET_SIZE;
 //! #
-//! let reflector = Reflector::from_perm(
-//!     Permutation::from_perm(vec![2u8, 3u8, 0u8, 1u8]).unwrap()
-//! ).unwrap();
+//! let perm = PermutationBuilder::new(RUNE_SET_SIZE)
+//!     .swap(0, 1).swap(2, 3).swap(4, 5).swap(6, 7).swap(8, 9)
+//!     .swap(10, 11).swap(12, 13).swap(14, 15).swap(16, 17).swap(18, 19)
+//!     .swap(20, 21).swap(22, 23).swap(24, 25)
+//!     .build();
+//! let reflector = Reflector::from_perm(perm).unwrap();
 //! ```
 //!
 //! If the permutation given to `from_perm` does not meet the requirements introduced above,
@@ -24,14 +29,24 @@
 //!
 //! ```
 //! # use enigma::components::reflector::Reflector;
-//! # use enigma::math::Permutation;
+//! # use enigma::math::{Permutation, PermutationBuilder};
+//! # use enigma::utils::RUNE_SET_SIZE;
 //! #
+//! // The size of perm is not `RUNE_SET_SIZE`.
+//! let perm = Permutation::from_perm(vec![1u8, 0u8, 3u8, 2u8]).unwrap();
+//! assert!(Reflector::from_perm(perm).is_err());
+//!
 //! // perm has fixed point
-//! let perm = Permutation::from_perm(vec![0u8, 1u8, 2u8, 3u8]).unwrap();
+//! let perm = PermutationBuilder::new(RUNE_SET_SIZE).build();
 //! assert!(Reflector::from_perm(perm).is_err());
 //!
 //! // The length of the longest cycle within perm is not 2.
-//! let perm = Permutation::from_perm(vec![2u8, 3u8, 1u8, 0u8]).unwrap();
+//! let perm = PermutationBuilder::new(RUNE_SET_SIZE)
+//!     .swap(0, 1).swap(2, 3).swap(4, 5).swap(6, 7).swap(8, 9)
+//!     .swap(10, 11).swap(12, 13).swap(14, 15).swap(16, 17).swap(18, 19)
+//!     .swap(20, 21).swap(22, 23).swap(24, 25)
+//!     .swap(0, 2)   // This will introduce a cycle whose length is 4
+//!     .build();
 //! assert!(Reflector::from_perm(perm).is_err());
 //! ```
 //!
@@ -40,14 +55,17 @@
 //!
 //! ```
 //! # use enigma::components::reflector::Reflector;
-//! # use enigma::math::Permutation;
-//! # use enigma::utils::Rune;
+//! # use enigma::math::{Permutation, PermutationBuilder};
+//! # use enigma::utils::{Rune, RUNE_SET_SIZE};
 //! #
-//! let reflector = Reflector::from_perm(
-//!     Permutation::from_perm(vec![2u8, 3u8, 0u8, 1u8]).unwrap()
-//! ).unwrap();
+//! let perm = PermutationBuilder::new(RUNE_SET_SIZE)
+//!     .swap(0, 1).swap(2, 3).swap(4, 5).swap(6, 7).swap(8, 9)
+//!     .swap(10, 11).swap(12, 13).swap(14, 15).swap(16, 17).swap(18, 19)
+//!     .swap(20, 21).swap(22, 23).swap(24, 25)
+//!     .build();
+//! let reflector = Reflector::from_perm(perm).unwrap();
 //!
-//! assert_eq!(reflector.map(Rune::from_char('b').unwrap()), 'd');
+//! assert_eq!(reflector.map(Rune::from_char('c').unwrap()), 'd');
 //! ```
 //!
 //! [`Reflector`]: struct.Reflector.html
@@ -57,7 +75,7 @@ use std::error::Error;
 use std::fmt::{Display, Formatter};
 
 use crate::math::Permutation;
-use crate::utils::Rune;
+use crate::utils::{Rune, RUNE_SET_SIZE};
 
 /// Error indicating that the permutation of a reflector is invalid.
 #[derive(Clone, Copy, Debug)]
@@ -89,6 +107,10 @@ impl Reflector {
     /// This function performs sanity checks against the conditions above. If any of the conditions
     /// are not satisfied, this function will fail.
     pub fn from_perm(perm: Permutation) -> Result<Self, InvalidReflectorPermutationError> {
+        if perm.n() != RUNE_SET_SIZE {
+            return Err(InvalidReflectorPermutationError);
+        }
+
         // Checks that perm does not have any fixed points.
         for i in 0..perm.n() {
             if perm.map(i) == i {
@@ -130,35 +152,49 @@ impl TryFrom<Permutation> for Reflector {
 mod tests {
     use super::*;
 
+    use crate::components::tests::*;
+
     mod reflector_tests {
         use super::*;
 
         #[test]
         fn test_from_perm_valid() {
-            let perm = Permutation::from_perm(vec![2u8, 3u8, 0u8, 1u8]).unwrap();
+            let perm = create_test_perm_builder()
+                .build();
             assert!(Reflector::from_perm(perm).is_ok());
         }
 
         #[test]
-        fn test_from_perm_invalid() {
-            // The permutation should not have any fixed points
+        fn test_from_perm_invalid_size() {
             let perm = Permutation::from_perm(vec![0u8, 1u8, 2u8, 3u8]).unwrap();
             assert!(Reflector::from_perm(perm).is_err());
+        }
 
+        #[test]
+        fn test_from_perm_invalid_fixed_point() {
+            // The permutation should not have any fixed points
+            let perm = PermutationBuilder::new(RUNE_SET_SIZE).build();
+            assert!(Reflector::from_perm(perm).is_err());
+        }
+
+        #[test]
+        fn test_from_perm_invalid_cycle() {
             // The length of the longest cycle within the permutation should be 2.
-            let perm = Permutation::from_perm(vec![2u8, 3u8, 1u8, 0u8]).unwrap();
+            let perm = create_test_perm_builder()
+                .swap(0, 2)
+                .build();
             assert!(Reflector::from_perm(perm).is_err());
         }
 
         #[test]
         fn test_map() {
             let reflector = Reflector::from_perm(
-                Permutation::from_perm(vec![2u8, 3u8, 0u8, 1u8]).unwrap()
+                create_test_perm_builder().build()
             ).unwrap();
-            assert_eq!(reflector.map(Rune::from_char('a').unwrap()), 'c');
-            assert_eq!(reflector.map(Rune::from_char('b').unwrap()), 'd');
-            assert_eq!(reflector.map(Rune::from_char('c').unwrap()), 'a');
-            assert_eq!(reflector.map(Rune::from_char('d').unwrap()), 'b');
+            assert_eq!(reflector.map(Rune::from_char('a').unwrap()), 'b');
+            assert_eq!(reflector.map(Rune::from_char('b').unwrap()), 'a');
+            assert_eq!(reflector.map(Rune::from_char('c').unwrap()), 'd');
+            assert_eq!(reflector.map(Rune::from_char('d').unwrap()), 'c');
         }
     }
 }

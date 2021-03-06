@@ -83,7 +83,11 @@ impl Display for RuneOutOfRangeError {
 
 impl Error for RuneOutOfRangeError { }
 
-const RUNE_VALUE_MAX: u8 = 25;
+/// The maximal possible value of a rune.
+pub const RUNE_VALUE_MAX: u8 = 25;
+
+/// The size of the set which contains all valid runes.
+pub const RUNE_SET_SIZE: u8 = 26;
 
 /// A rune.
 ///
