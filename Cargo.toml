@@ -8,10 +8,11 @@ edition = "2018"
 
 [dependencies]
 clap = { version = "2.33.3", optional = true }
+serde = { version = "1.0.124", optional = true, features = ["derive"] }
 serde_json = { version = "1.0.64", optional = true }
 
 [features]
-binary = ["clap", "serde_json"]
+binary = ["clap", "serde", "serde_json"]
 
 [[bin]]
 name = "enigma-cli"

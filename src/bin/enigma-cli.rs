@@ -1,15 +1,18 @@
 extern crate enigma;
 
 extern crate clap;
+extern crate serde;
 extern crate serde_json;
 
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::path::{Path, PathBuf};
 
-use enigma::{Enigma, PlugBoard, Reflector, Rotator, RotatorGroup};
+use serde::Deserialize;
+
+use enigma::{Enigma, PlugBoard, Reflector, Rotator, RotatorGroup, Rune};
 use enigma::math::{Permutation, PermutationBuilder};
-use enigma::utils::{RUNE_SET_SIZE, RUNE_VALUE_MAX};
+use enigma::utils::{RUNE_SET_SIZE};
 
 #[derive(Clone, Debug)]
 struct InvalidConfigError {
@@ -30,7 +33,7 @@ impl Display for InvalidConfigError {
 
 impl Error for InvalidConfigError { }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize)]
 struct Config {
     plug_board: Vec<[char; 2]>,
     rotators: [(Vec<char>, u8); 3],
@@ -124,8 +127,8 @@ fn create_permutation_from_swaps(swaps: &Vec<[char; 2]>)
                 format!("{} is not an ASCII alphabetic character", sw[1])));
         }
 
-        let lhs = (sw[0].to_ascii_lowercase() - 'a') as u8;
-        let rhs = (sw[1].to_ascii_lowercase() - 'a') as u8;
+        let lhs = sw[0].to_ascii_lowercase() as u8 - 'a' as u8;
+        let rhs = sw[1].to_ascii_lowercase() as u8 - 'a' as u8;
         builder = builder.swap(lhs, rhs);
     }
 
@@ -141,7 +144,7 @@ fn create_permutation_from(char_perm: &Vec<char>) -> Result<Permutation, Invalid
                 format!("{} is not an ASCII alphabetic character", ch)));
         }
 
-        perm.push((ch.to_ascii_lowercase() - 'a') as u8);
+        perm.push(ch.to_ascii_lowercase() as u8 - 'a' as u8);
     }
 
     Permutation::from_perm(perm)
@@ -208,7 +211,21 @@ fn main() {
         },
     };
 
-    let output_content = machine.map(&input_content);
+    let mut output_content = String::with_capacity(input_content.len());
+    for ch in input_content.chars() {
+        let rune = match Rune::from_char(ch) {
+            Ok(r) => r,
+            Err(_) => {
+                if ch.is_whitespace() {
+                    continue;
+                }
+                eprintln!("Invalid character in input");
+                std::process::exit(1);
+            },
+        };
+        let mapped_rune = machine.map_rune(rune);
+        output_content.push(mapped_rune.into_char());
+    }
 
     let output_file_path = PathBuf::from(String::from(args.value_of("output").unwrap()));
     match std::fs::write(output_file_path, output_content) {
