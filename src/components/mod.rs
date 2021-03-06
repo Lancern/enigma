@@ -8,7 +8,7 @@ pub mod rotator;
 
 pub use plug_board::{InvalidPlugBoardPermutationError, PlugBoard};
 pub use reflector::{InvalidReflectorPermutationError, Reflector};
-pub use rotator::{InvalidRotatorPermutationError, Rotator};
+pub use rotator::{InvalidRotatorPermutationError, Rotator, RotatorGroup};
 
 #[cfg(test)]
 mod tests {
