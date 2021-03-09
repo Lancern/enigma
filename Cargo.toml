@@ -17,3 +17,7 @@ binary = ["clap", "serde", "serde_json"]
 [[bin]]
 name = "enigma-cli"
 required-features = ["binary"]
+
+[[bin]]
+name = "enigma-crack"
+required-features = ["binary"]

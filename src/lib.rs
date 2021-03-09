@@ -21,17 +21,22 @@ impl Enigma {
         Self { plug, rotators, reflector }
     }
 
-    /// Map the specified input rune to output rune.
-    pub fn map_rune(&mut self, mut input: Rune) -> Rune {
+    /// Map the specified input rune to output rune, but do not advance the rotators.
+    pub fn map_rune_static(&self, mut input: Rune) -> Rune {
         input = self.plug.map(input);
         input = self.rotators.map_forward(input);
         input = self.reflector.map(input);
         input = self.rotators.map_backward(input);
         input = self.plug.map(input);
 
-        self.rotators.advance();
-
         input
+    }
+
+    /// Map the specified input rune to output rune.
+    pub fn map_rune(&mut self, input: Rune) -> Rune {
+        let ret = self.map_rune_static(input);
+        self.advance_rotators();
+        ret
     }
 
     /// Map all runes within the specified string to output rune and returns all output runes as a
@@ -45,5 +50,10 @@ impl Enigma {
             };
         }
         output
+    }
+
+    /// Manually advance the rotators by one step.
+    pub fn advance_rotators(&mut self) {
+        self.rotators.advance();
     }
 }
