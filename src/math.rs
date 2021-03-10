@@ -33,6 +33,7 @@
 use std::convert::TryFrom;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
+use std::ops::Index;
 
 /// Error that indicates a permutation is invalid.
 #[derive(Clone, Copy, Debug)]
@@ -99,6 +100,11 @@ impl Permutation {
         self.perm.len() as u8
     }
 
+    /// Get the size of the permutation.
+    pub fn len(&self) -> usize {
+        self.perm.len()
+    }
+
     /// Get the mapped-to number of the specified element within this permutation.
     ///
     /// This function panics if element is greater than or equal to `n()`.
@@ -141,6 +147,22 @@ impl Permutation {
         Self {
             perm: inv,
         }
+    }
+}
+
+impl Index<usize> for Permutation {
+    type Output = u8;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.perm[index]
+    }
+}
+
+impl Index<u8> for Permutation {
+    type Output = u8;
+
+    fn index(&self, index: u8) -> &Self::Output {
+        &self.perm[index]
     }
 }
 
