@@ -162,7 +162,7 @@ impl Index<u8> for Permutation {
     type Output = u8;
 
     fn index(&self, index: u8) -> &Self::Output {
-        &self.perm[index]
+        &self.perm[index as usize]
     }
 }
 
